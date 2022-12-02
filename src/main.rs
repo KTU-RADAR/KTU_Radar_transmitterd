@@ -28,6 +28,7 @@ struct Duyuru {
     topic: String,
     author: String,
     date: String,
+    link: String,
 }
 
 async fn ktu_duyuru() -> impl IntoResponse {
@@ -35,6 +36,7 @@ async fn ktu_duyuru() -> impl IntoResponse {
         topic: "bruh".to_owned(),
         author: "bruh2".to_owned(),
         date: "bruh3".to_owned(),
+        link: "bruh3".to_owned(),
     };
 
     let ktu_duyuru = reqwest::get("https://www.ktu.edu.tr/tr/duyurular")
@@ -131,6 +133,7 @@ async fn ktu_pc_duyuru() -> impl IntoResponse {
         topic: "bruh".to_owned(),
         author: "bruh2".to_owned(),
         date: "bruh3".to_owned(),
+        link: "bruh3".to_owned(),
     };
 
     let ktu_duyuru = reqwest::get("https://www.ktu.edu.tr/bilgisayar/duyurular")
@@ -162,6 +165,21 @@ async fn ktu_pc_duyuru() -> impl IntoResponse {
             //println!("{}", element.inner_html().trim_end());
             duyuru.topic = element.inner_html().trim_end().to_owned();
         }
+
+        let selector_base = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
+            .to_owned()
+            + indis.to_string().as_str()
+            + ")";
+        let selector = Selector::parse(&selector_base).unwrap();
+
+        for element in fragment.select(&selector) {
+            //println!("{}", element.inner_html().trim_end());
+            duyuru.link = "https://www.ktu.edu.tr".to_string()
+                + element.value().attr("href").unwrap().to_string().as_str();
+        }
+
+        //div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child(1)
+        //div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child(2)
 
         let selector_base = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
             .to_owned()
