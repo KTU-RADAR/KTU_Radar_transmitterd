@@ -1,5 +1,6 @@
 use axum::response::IntoResponse;
 use axum::routing::get;
+use axum::routing::post;
 use axum::Json;
 use axum::Router;
 use scraper::{Html, Selector};
@@ -14,13 +15,27 @@ async fn main() {
     // build our application with a single route
     let app = Router::new()
         // `GET /` goes to `root`
-        .route("/", get(ktu_pc_duyuru));
+        .route("/", get(ktu_pc_duyuru))
+        .route("/duyuruekle", post(create_duyuru));
     // `POST /users` goes to `create_user`
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+#[derive(Deserialize, Debug, Serialize)]
+struct CreateDuyuru {
+    hoca: String,
+    konu: String,
+    text: String,
+    tarih: String,
+}
+
+async fn create_duyuru(Json(payload): Json<CreateDuyuru>) -> impl IntoResponse {
+    println!("{:?}", payload);
+    Json(payload)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
