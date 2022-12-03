@@ -21,6 +21,7 @@ async fn main() {
         conn.execute(
             "CREATE TABLE duyurular (
                 hoca TEXT,
+                ders TEXT,
                 konu TEXT,
                 metin TEXT,
                 tarih TEXT
@@ -54,9 +55,10 @@ async fn hoca_duyuru() -> impl IntoResponse {
         .query_map([], |row| {
             Ok(CreateDuyuru {
                 hoca: row.get(0)?,
-                konu: row.get(1)?,
-                metin: row.get(2)?,
-                tarih: row.get(3)?,
+                ders: row.get(1)?,
+                konu: row.get(2)?,
+                metin: row.get(3)?,
+                tarih: row.get(4)?,
             })
         })
         .unwrap();
@@ -73,6 +75,7 @@ async fn hoca_duyuru() -> impl IntoResponse {
 #[derive(Deserialize, Debug, Serialize, Clone)]
 struct CreateDuyuru {
     hoca: String,
+    ders: String,
     konu: String,
     metin: String,
     tarih: String,
@@ -82,14 +85,15 @@ async fn create_duyuru(Json(payload): Json<CreateDuyuru>) -> impl IntoResponse {
     println!("{:?}", payload);
     let clonedlol = payload.clone();
     let a = payload.hoca;
-    let b = payload.konu;
-    let c = payload.metin;
-    let d = payload.tarih;
+    let b = payload.ders;
+    let c = payload.konu;
+    let d = payload.metin;
+    let e = payload.tarih;
 
     let conn = sqlite_connection();
     conn.execute(
-        "INSERT INTO duyurular (hoca, konu, metin, tarih) VALUES (?1,?2,?3,?4)",
-        (a, b, c, d),
+        "INSERT INTO duyurular (hoca, ders, konu, metin, tarih) VALUES (?1,?2,?3,?4,?5)",
+        (a, b, c, d, e),
     )
     .unwrap();
     Json(clonedlol)
@@ -304,9 +308,10 @@ async fn ktu_pc_duyuru() -> impl IntoResponse {
         .query_map([], |row| {
             Ok(CreateDuyuru {
                 hoca: row.get(0)?,
-                konu: row.get(1)?,
-                metin: row.get(2)?,
-                tarih: row.get(3)?,
+                ders: row.get(1)?,
+                konu: row.get(2)?,
+                metin: row.get(3)?,
+                tarih: row.get(4)?,
             })
         })
         .unwrap();
