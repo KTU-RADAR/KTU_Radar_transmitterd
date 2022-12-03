@@ -3,12 +3,33 @@ use axum::routing::get;
 use axum::routing::post;
 use axum::Json;
 use axum::Router;
+use rusqlite::Connection;
 use scraper::{Html, Selector};
 use serde::Deserialize;
 use serde::Serialize;
 
+fn sqlite_connection() -> Connection {
+    Connection::open("lol.db3").unwrap()
+}
+
 #[tokio::main]
 async fn main() {
+    if std::path::Path::new("lol.db3").exists() {
+        println!("db exists")
+    } else {
+        let conn = sqlite_connection();
+        conn.execute(
+            "CREATE TABLE duyurular (
+                hoca TEXT,
+                konu TEXT,
+                metin TEXT,
+                tarih TEXT
+            )",
+            (),
+        )
+        .unwrap();
+    }
+
     ktu_duyuru().await;
     ktu_pc_duyuru().await;
 
@@ -25,17 +46,29 @@ async fn main() {
         .unwrap();
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Serialize, Clone)]
 struct CreateDuyuru {
     hoca: String,
     konu: String,
-    text: String,
+    metin: String,
     tarih: String,
 }
 
 async fn create_duyuru(Json(payload): Json<CreateDuyuru>) -> impl IntoResponse {
     println!("{:?}", payload);
-    Json(payload)
+    let clonedlol = payload.clone();
+    let a = payload.hoca;
+    let b = payload.konu;
+    let c = payload.metin;
+    let d = payload.tarih;
+
+    let conn = sqlite_connection();
+    conn.execute(
+        "INSERT INTO duyurular (hoca, konu, metin, tarih) VALUES (?1,?2,?3,?4)",
+        (a, b, c, d),
+    )
+    .unwrap();
+    Json(clonedlol)
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -240,6 +273,22 @@ async fn ktu_pc_duyuru() -> impl IntoResponse {
 
         json_total.push(duyuru.clone());
         indis += 1
+    }
+    let conn = sqlite_connection();
+    let mut stmt = conn.prepare("SELECT * FROM duyurular").unwrap();
+    let person_iter = stmt
+        .query_map([], |row| {
+            Ok(CreateDuyuru {
+                hoca: row.get(0)?,
+                konu: row.get(1)?,
+                metin: row.get(2)?,
+                tarih: row.get(3)?,
+            })
+        })
+        .unwrap();
+
+    for person in person_iter {
+        println!("Found person {:?}", person.unwrap());
     }
     Json(json_total)
 
