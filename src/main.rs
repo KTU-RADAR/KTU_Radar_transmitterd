@@ -39,8 +39,8 @@ async fn main() {
 
     // build our application with a single route
     let app = Router::new()
-        // `GET /` goes to `root`
-        .route("/", get(ktu_pc_duyuru))
+        .route("/ktuduyuru", get(ktu_duyuru))
+        .route("/pcduyuru", get(ktu_pc_duyuru))
         .route("/hocaduyuru", get(hoca_duyuru))
         .route("/duyuruekle", post(create_duyuru));
     // `POST /users` goes to `create_user`
