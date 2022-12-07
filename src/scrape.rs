@@ -1,19 +1,10 @@
 use axum::{response::IntoResponse, Json};
 use scraper::{Html, Selector};
-use serde::{Deserialize, Serialize};
 
-use crate::{sqlite_connection, CreateDuyuru};
+use crate::{sqlite_connection, HocaDuyuru, ScDuyuru};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Duyuru {
-    topic: String,
-    author: String,
-    date: String,
-    link: String,
-}
-
-async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
-    let mut duyuru = Duyuru {
+async fn scrape_data(url: &str) -> Json<Vec<ScDuyuru>> {
+    let mut duyuru = ScDuyuru {
         topic: "".to_owned(),
         author: "".to_owned(),
         date: "".to_owned(),
@@ -30,7 +21,7 @@ async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
     let parsed_html = Html::parse_fragment(&ktu_duyuru);
     let mut index = 1;
 
-    let mut json_total = vec![];
+    let mut duyuru_json = vec![];
 
     while index < 19 {
         let topic_selector = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
@@ -43,23 +34,6 @@ async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
 
         for element in parsed_html.select(&parsed_topic_selector) {
             duyuru.topic = element.inner_html().trim_end().to_owned();
-        }
-
-        let link_selector = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
-            .to_owned()
-            + index.to_string().as_str()
-            + ")";
-        let parsed_link_selector =
-            Selector::parse(&link_selector).expect("cant parse link selector");
-
-        for element in parsed_html.select(&parsed_link_selector) {
-            duyuru.link = "https://www.ktu.edu.tr".to_string()
-                + element
-                    .value()
-                    .attr("href")
-                    .expect("can't get href value of link")
-                    .to_string()
-                    .as_str();
         }
 
         let author_selector = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
@@ -104,10 +78,27 @@ async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
 
         duyuru.date = day + " " + month.as_str();
 
-        json_total.push(duyuru.clone());
+        let link_selector = "div.carousel-item:nth-child(1) > div:nth-child(1) > a:nth-child("
+            .to_owned()
+            + index.to_string().as_str()
+            + ")";
+        let parsed_link_selector =
+            Selector::parse(&link_selector).expect("cant parse link selector");
+
+        for element in parsed_html.select(&parsed_link_selector) {
+            duyuru.link = "https://www.ktu.edu.tr".to_string()
+                + element
+                    .value()
+                    .attr("href")
+                    .expect("can't get href value of link")
+                    .to_string()
+                    .as_str();
+        }
+
+        duyuru_json.push(duyuru.clone());
         index += 1
     }
-    Json(json_total)
+    Json(duyuru_json)
 }
 
 pub async fn ktu_duyuru() -> impl IntoResponse {
@@ -123,7 +114,7 @@ pub async fn trigger_db() -> impl IntoResponse {
     let mut stmt = conn.prepare("SELECT * FROM duyurular").unwrap();
     let duyurular = stmt
         .query_map([], |row| {
-            Ok(CreateDuyuru {
+            Ok(HocaDuyuru {
                 hoca: row.get(0)?,
                 ders: row.get(1)?,
                 konu: row.get(2)?,

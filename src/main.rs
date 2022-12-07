@@ -12,6 +12,23 @@ use scrape::trigger_db;
 use serde::Deserialize;
 use serde::Serialize;
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct ScDuyuru {
+    topic: String,
+    author: String,
+    date: String,
+    link: String,
+}
+
+#[derive(Deserialize, Debug, Serialize, Clone)]
+struct HocaDuyuru {
+    hoca: String,
+    ders: String,
+    konu: String,
+    metin: String,
+    tarih: String,
+}
+
 fn sqlite_connection() -> Connection {
     Connection::open("lol.db3").unwrap()
 }
@@ -58,7 +75,7 @@ async fn hoca_duyuru() -> impl IntoResponse {
     let mut stmt = conn.prepare("SELECT * FROM duyurular").unwrap();
     let person_iter = stmt
         .query_map([], |row| {
-            Ok(CreateDuyuru {
+            Ok(HocaDuyuru {
                 hoca: row.get(0)?,
                 ders: row.get(1)?,
                 konu: row.get(2)?,
@@ -77,16 +94,7 @@ async fn hoca_duyuru() -> impl IntoResponse {
     Json(jsoned_hoca_duyuru)
 }
 
-#[derive(Deserialize, Debug, Serialize, Clone)]
-struct CreateDuyuru {
-    hoca: String,
-    ders: String,
-    konu: String,
-    metin: String,
-    tarih: String,
-}
-
-async fn create_duyuru(Json(payload): Json<CreateDuyuru>) -> impl IntoResponse {
+async fn create_duyuru(Json(payload): Json<HocaDuyuru>) -> impl IntoResponse {
     println!("{:?}", payload);
     let clonedlol = payload.clone();
     let a = payload.hoca;
