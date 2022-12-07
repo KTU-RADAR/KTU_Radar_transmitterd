@@ -8,6 +8,7 @@ use axum::Router;
 use rusqlite::Connection;
 use scrape::ktu_duyuru;
 use scrape::ktu_pc_duyuru;
+use scrape::trigger_db;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -39,6 +40,7 @@ async fn main() {
 
     // build our application with a single route
     let app = Router::new()
+        .route("/trigger", get(trigger_db))
         .route("/ktuduyuru", get(ktu_duyuru))
         .route("/pcduyuru", get(ktu_pc_duyuru))
         .route("/hocaduyuru", get(hoca_duyuru))

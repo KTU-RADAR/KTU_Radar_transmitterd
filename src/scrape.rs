@@ -104,12 +104,21 @@ async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
 
         duyuru.date = day + " " + month.as_str();
 
-        let serialized = serde_json::to_string(&duyuru).unwrap();
-        println!("serialized = {}", serialized);
-
         json_total.push(duyuru.clone());
         index += 1
     }
+    Json(json_total)
+}
+
+pub async fn ktu_duyuru() -> impl IntoResponse {
+    scrape_data("https://www.ktu.edu.tr/tr/duyurular").await
+}
+
+pub async fn ktu_pc_duyuru() -> impl IntoResponse {
+    scrape_data("https://www.ktu.edu.tr/bilgisayar/duyurular").await
+}
+
+pub async fn trigger_db() -> impl IntoResponse {
     let conn = sqlite_connection();
     let mut stmt = conn.prepare("SELECT * FROM duyurular").unwrap();
     let duyurular = stmt
@@ -127,13 +136,4 @@ async fn scrape_data(url: &str) -> Json<Vec<Duyuru>> {
     for duyuru in duyurular {
         println!("Found duyuru {:?}", duyuru.unwrap());
     }
-    Json(json_total)
-}
-
-pub async fn ktu_duyuru() -> impl IntoResponse {
-    scrape_data("https://www.ktu.edu.tr/tr/duyurular").await
-}
-
-pub async fn ktu_pc_duyuru() -> impl IntoResponse {
-    scrape_data("https://www.ktu.edu.tr/bilgisayar/duyurular").await
 }
