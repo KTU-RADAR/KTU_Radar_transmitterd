@@ -103,6 +103,21 @@ async fn create_duyuru(Json(payload): Json<HocaDuyuru>) -> impl IntoResponse {
     let d = payload.metin;
     let e = payload.tarih;
 
+    let baslik = b.clone() + " " + &c;
+    let client = fcm::Client::new();
+    let topic = "/topics/".to_string() + &b;
+
+    let mut notification_builder = fcm::NotificationBuilder::new();
+    notification_builder.title(&baslik);
+    notification_builder.body(&d);
+
+    let notification = notification_builder.finalize();
+    let mut message_builder = fcm::MessageBuilder::new("", &topic);
+    message_builder.notification(notification);
+
+    let response = client.send(message_builder.finalize()).await.unwrap();
+    println!("Sent: {:?}", response);
+
     let conn = sqlite_connection();
     conn.execute(
         "INSERT INTO duyurular (hoca, ders, konu, metin, tarih) VALUES (?1,?2,?3,?4,?5)",
