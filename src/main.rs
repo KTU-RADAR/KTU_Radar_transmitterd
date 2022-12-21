@@ -61,7 +61,7 @@ async fn main() {
     let app = Router::new()
         .route("/trigger", get(trigger_db))
         .route("/ktuduyuru", get(ktu_duyuru))
-        .route("/pcduyuru", get(ktu_pc_duyuru))
+        .route("/", get(ktu_pc_duyuru))
         .route("/hocaduyuru", get(hoca_duyuru))
         .route("/duyuruekle", post(create_duyuru));
     // `POST /users` goes to `create_user`
@@ -105,7 +105,7 @@ async fn create_duyuru(Json(payload): Json<HocaDuyuru>) -> impl IntoResponse {
     let d = payload.metin;
     let e = payload.tarih;
 
-    let baslik = b.clone() + " " + &c;
+    let baslik = c.clone() + ": " + &d;
 
     let client = fcm::Client::new();
     let mut map = HashMap::new();
