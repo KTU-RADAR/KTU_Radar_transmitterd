@@ -1,5 +1,7 @@
 pub mod scrape;
 
+use std::collections::HashMap;
+
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::routing::post;
@@ -104,7 +106,11 @@ async fn create_duyuru(Json(payload): Json<HocaDuyuru>) -> impl IntoResponse {
     let e = payload.tarih;
 
     let baslik = b.clone() + " " + &c;
+
     let client = fcm::Client::new();
+    let mut map = HashMap::new();
+    map.insert("key1", &b);
+
     let topic = "/topics/".to_string() + &b;
 
     let mut notification_builder = fcm::NotificationBuilder::new();
@@ -113,6 +119,7 @@ async fn create_duyuru(Json(payload): Json<HocaDuyuru>) -> impl IntoResponse {
 
     let notification = notification_builder.finalize();
     let mut message_builder = fcm::MessageBuilder::new("", &topic);
+    message_builder.data(&map).unwrap();
     message_builder.notification(notification);
 
     let response = client.send(message_builder.finalize()).await.unwrap();
