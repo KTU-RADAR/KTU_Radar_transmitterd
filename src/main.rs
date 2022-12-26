@@ -15,7 +15,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct ScDuyuru {
+struct KtuDuyuru {
     topic: String,
     author: String,
     date: String,

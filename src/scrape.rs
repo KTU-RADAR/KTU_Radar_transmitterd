@@ -1,10 +1,10 @@
 use axum::{response::IntoResponse, Json};
 use scraper::{Html, Selector};
 
-use crate::{sqlite_connection, HocaDuyuru, ScDuyuru};
+use crate::{sqlite_connection, HocaDuyuru, KtuDuyuru};
 
-async fn scrape_data(url: &str) -> Json<Vec<ScDuyuru>> {
-    let mut duyuru = ScDuyuru {
+async fn scrape_data(url: &str) -> Json<Vec<KtuDuyuru>> {
+    let mut duyuru = KtuDuyuru {
         topic: "".to_owned(),
         author: "".to_owned(),
         date: "".to_owned(),
